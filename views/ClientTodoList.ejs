@@ -1,0 +1,301 @@
+<link rel="shortcut icon" href="data:image/x-icon;" type="image/x-icon">
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>RT todo-list</title>
+        <style>
+
+           STRONG {
+              color: white;
+              background-color: black;
+               padding: 2px;
+          }
+
+        </style>
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
+       <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.2/awesomplete.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.2/awesomplete.js" ></script>
+
+    </head>
+
+    <body>
+      <div class="content has-background-grey-dark	">
+
+      <div class="columns">
+        <div class="column  is-half is-offset-one-quarter progressDiv">
+          <h1 class="title has-text-light	">Real-Time todolist App</h1>
+          <progress class="progress" value="00" max="100">0%</progress>
+        </div>
+      </div>
+  <div class="columns">
+    <div class="column is-half is-offset-one-quarter">
+      <hr>
+
+        <div id="todolist" >
+          <ul>
+
+          </ul>
+        </div>
+        <section class="hero is-info">
+          <div class="hero-body">
+        <form id="myForm" action="/todolist/ajouter" method="post">
+
+
+          <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label">What should i do ?
+           </label>
+        </div>
+  <div class="field-body">
+    <div class="field">
+      <p class="control">
+<input type="text" class="input is-rounded" id="myInput" name="newTask" value="" autocomplete="off">
+<input type="submit" class="button is-primary" id="myButton" value="Valider">
+  </p>
+    </div>
+  </div>
+</div>
+      </form>
+
+      <div id="div1">
+        <section class="hero is-info">
+          <div class="hero-body istypingDiv">
+      <ul id="xhrUl">
+
+        <% JSON.stringify(todolList.forEach(function(items,index){   %>
+          <script> var MyindexToDelete = "<%=index%>"</script>
+          <li class="xhrLi"> <%= items.item %><a><span class="mySpan">✘</span></a></li>
+
+        <%  }),null,2); %>
+
+
+        </ul>
+        </section>
+</div>
+
+      </div>
+
+      </section>
+</div>
+
+       <!-- pseudo of users connected  -->
+      <div id="users">
+      </div>
+      <br><br>
+      <div id="xhrdiv"></div>
+
+
+          </div>
+       </div>
+
+</div>
+      <script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+      <script src="/socket.io/socket.io.js"></script>
+
+        <script>
+        /* socket io script */
+
+
+        var socket = io.connect('http://localhost:8080');
+      //  var pseudo = prompt('donnez votre pseudonom');
+        var myInput = document.getElementById('myInput');
+        var myDiv = document.querySelector('.istypingDiv');
+        var myLi = document.createElement('li');
+        var usersDiv = document.getElementById('users');
+        var myUl = document.getElementById('xhrUl');
+        var mySpan = document.getElementsByClassName('mySpan');
+        var myLis = myUl.getElementsByTagName('li');
+
+
+
+
+      myInput.onkeyup = ()=>{
+      socket.emit('typing',myInput.value);
+        myLi.innerHTML = myInput.value;
+        myUl.appendChild(myLi);
+        if (myLi.innerHTML == "") {
+          myUl.removeChild(myLi);
+        }
+      };
+
+      socket.on('connected', function(pseudo) {
+        var myP = document.createElement('p');
+        myP.innerHTML = "<STRONG>"+ pseudo +"</STRONG>"+ ' vient de rejoindre la todo-list !' ;
+        usersDiv.appendChild(myP);
+      });
+
+      var typingP = document.createElement('strong');
+
+        socket.on('inputValue',(inputValue)=>{
+          if (inputValue != ""){
+            typingP.textContent = "a user in typing...";
+            myDiv.appendChild(typingP);
+            myLi.innerHTML = inputValue;
+            myUl.appendChild(myLi);
+          }else {
+            if (myDiv.contains(typingP)) {
+              myDiv.removeChild(typingP);
+            }
+            if (myUl.contains(myLi)) {
+              myUl.removeChild(myLi);
+            }
+          }
+
+        });
+
+        socket.on('Gorefresh',(newItem)=>{
+
+                     var newLi11 = document.createElement('li');
+                     var newA1 = document.createElement('a');
+                     var newSpan1 = document.createElement('span');
+
+                     newLi11.textContent = newItem;
+                     newSpan1.textContent = "✘";
+                     newSpan1.classList = "mySpan";
+                     newA1.appendChild(newSpan1);
+                     MyindexToDelete++;
+                     newLi11.appendChild(newA1);
+                     myUl.appendChild(newLi11);
+                     if (myUl.contains(myLi)) {
+                       myUl.removeChild(myLi);
+                     }
+                     if (myDiv.contains(typingP)) {
+                       myDiv.removeChild(typingP);
+                     }
+
+        });
+        socket.on('GorefreshOnDelete',(whatever)=>{
+          var myLis = myUl.getElementsByTagName('li');
+          if (myUl.contains(myLis[whatever])) {
+            myUl.removeChild(myLis[whatever]);
+          }
+        });
+
+        console.log("<%=awesData%>");
+
+        var myProgress = document.querySelector(".progress");
+        var myprogressDiv = document.querySelector(".progressDiv");
+
+        var myFunction =  function(event){
+            event.preventDefault();
+            var newItem = myInput.value;
+            myProgress.value += 30;
+
+            if (myProgress.value == myProgress.max) {
+              myProgress.classList = "progress is-success";
+
+              var article = document.createElement('article');
+              article.classList = "message is-danger";
+              var messageBody = document.createElement('div');
+              messageBody.classList = "message-body";
+              messageBody.textContent = "done is better than perfect,you and your group should firstly finish those todos";
+              article.appendChild(messageBody);
+              myprogressDiv.appendChild(article);
+              myButton.disabled = true;
+              myInput.disabled = true;
+            }
+
+           socket.emit("newItemToAdd",newItem);
+
+           var newLi1 = document.createElement('li');
+           var newA = document.createElement('a');
+           var newSpan = document.createElement('span');
+
+           newLi1.textContent = newItem;
+           newSpan.textContent = "✘";
+           newSpan.classList = "mySpan";
+           newA.appendChild(newSpan);
+           MyindexToDelete++;
+           newLi1.appendChild(newA);
+           myUl.appendChild(newLi1);
+           if (myUl.contains(myLi)) {
+             myUl.removeChild(myLi);
+           }
+
+
+          // location.reload();
+          myInput.value = "";
+          // i made this lines of code in order to get the index of the clicked Span
+          var ccSpans=[];
+          while(mySpan.length != ccSpans.length){
+          ccSpans.push(mySpan[ccSpans.length])
+        };
+
+          for (var i = 0; i < mySpan.length; i++){
+            mySpan[i].onclick = (event)=>{
+                  var myLis = myUl.getElementsByTagName('li');
+                  var indexOfmyElementTodelete = ccSpans.indexOf(event.target || event.srcElement);
+                  socket.emit("refreshOnDelete",indexOfmyElementTodelete);
+                  myUl.removeChild(myLis[indexOfmyElementTodelete]);
+                  ccSpans.splice(indexOfmyElementTodelete,1);
+
+                  };
+              }
+                }
+
+        var myButton = document.getElementById('myButton');
+        var form = document.getElementById("myForm");
+        form.addEventListener("submit",myFunction, true);
+        // i made this lines of code in order to get the index of the clicked Span
+        var ccSpans=[];
+        while(mySpan.length != ccSpans.length){
+        ccSpans.push(mySpan[ccSpans.length])
+      };
+
+        for (var i = 0; i < mySpan.length; i++){
+          mySpan[i].onclick = (event)=>{
+                var myLis = myUl.getElementsByTagName('li');
+                var indexOfmyElementTodelete = ccSpans.indexOf(event.target || event.srcElement);
+                socket.emit("refreshOnDelete",indexOfmyElementTodelete);
+                myUl.removeChild(myLis[indexOfmyElementTodelete]);
+                ccSpans.splice(indexOfmyElementTodelete,1);
+                };
+            }
+
+        </script>
+
+        <script type="text/javascript">
+        var myInput = document.getElementById('myInput');
+        new Awesomplete(myInput, {
+          list: "<%= awesData%>"
+        });
+        </script>
+
+
+        <script type="text/javascript">
+
+          xhrdiv = document.getElementById('xhrdiv'),
+          xhrLi = document.getElementsByClassName('xhrLi'),
+          xhrUl = document.getElementById('xhrUl'),
+          xhrLiTag = xhrUl.getElementsByTagName('li');
+          var cc=[];
+            while( xhrLiTag.length != cc.length){
+              cc.push(xhrLiTag[cc.length])
+            };
+      <% /* am arbitrory test of AJAX request
+
+         cc.forEach(function(item){
+                  item.addEventListener("click", function (event){
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET','/todolist/xhr/'+cc.indexOf( event.target || event.srcElement),true);
+                        xhr.onload = ()=>{
+                          var pli = document.createElement('li');
+                          pli.textContent = JSON.parse(xhr.responseText).item;
+                          xhrdiv.appendChild(pli);
+                        }
+                        xhr.send();
+
+                  });
+
+                }); */ %>
+        </script>
+
+    </body>
+</html>
